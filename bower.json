@@ -1,0 +1,20 @@
+{
+  "name": "GMap",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Darkvador-a/Gmap",
+  "authors": [
+    "Bouchra <b_ziraoui@hotmail.fr>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "sweetalert": "~0.3.1",
+    "datatables": "~1.10.3"
+  }
+}

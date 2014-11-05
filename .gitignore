@@ -2,3 +2,5 @@
 /.vagrant/
 /.buildpath
 /.project
+
+/vendor/
