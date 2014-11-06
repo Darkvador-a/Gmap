@@ -7,36 +7,42 @@ require_once 'app/Db.php';
 
 try{
     $request = new Request;
-    $db=new Db('mysql','192.180.10.120','project','project','0000');
-    var_dump($db); exit;
+    $db=new Db('mysql','localhost','project','project','0000');
+    $coords=new Coords($db); //composition
+    
     // Vérifie AJAX 
     if (!$request->isXhr()) {
         echo 'BAD METHOD';
         exit(0);
     }
     $action = $request->getParam('action');
-    $coords=new Coords();
+    
 } catch(Exception $e) {
     echo $e->getMessage();
 }
-exit(0);
+
 switch($action) {
     case "upload" :
-        $coords-> importCSV();
+        echo $coords-> upload($request->getParam('data'));
         break;
     case "loadAddresses" :
-        $coords->readCoords();
+        echo $coords->fetchAll();
         break;
     case "loadAddress" :
-        $id = (int) $_GET['id'];
-        $coords->readById($id);
+        echo $coords->findById($request->getParam('id'));
         break;
     case "delete" :
-       $id = (int) $_GET['id'];
-       $coords->deleteCoords($id);
+       echo $coords->delete($request->getParam('id'));
        break;
-    case "save" :
-        $coords->newCoords();
+    case "save" :     
+       echo $coords->save(array(
+                'id' => (int) $request->getParam('id'),
+                'nom' => (string) $request->getParam('nom'),
+                'desc' => (string) $request->getParam('description'),
+                'adresse' => (string) $request->getParam('adresse'),
+                'url' => (string) $request->getParam('url'),
+            ));
         break;
 }
+
 

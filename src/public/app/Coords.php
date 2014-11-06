@@ -1,6 +1,6 @@
 <?php
-require '../../vendor/autoload.php';
-use \ForceUTF8\Encoding;
+// require '../../vendor/autoload.php';
+// use \ForceUTF8\Encoding;
 
 
 class Coords
@@ -38,40 +38,44 @@ class Coords
 
     /**
      *
-     * @var unknown
+     * @var PDO
      */
     private $db;
-
-    
     /**
-     * Initial connection pdo
+     * 
+     * @var PDO
      */
-    function __construct()
+    private $dbApater;
+    
+    function __construct($db)
     {
-        $this->setDb(dbConnect());   
+        if(! $db instanceof Db){
+            throw new InvalidArgumentException("The first parameter must be instance of Db");
+        }
+        $this->dbApater=$db->getConnexion();   
     }
-
     
 
     /**
-     * Import CSV
+     *  Import CSV
+     *  
+     * @param STRING $csvData
+     * @return number LINGE INSERE
      */
-    function importCSV()
+    function upload($csvData)
     {
-        $pdo = $this->db;
-        $data = $_POST['data'];
-        // Transformation des fins de ligne au format LF
-        $data = str_replace("\r\n", PHP_EOL, $data);
-        // détection du jeu de caractères
-        $data = Encoding::fixUTF8($data);
         
-        $data = explode(PHP_EOL, $data);
+        // Transformation des fins de ligne au format LF
+        $csvData = str_replace("\r\n", PHP_EOL, $csvData);        
+        $csvData = explode(PHP_EOL, $csvData);
         $sql = "INSERT INTO coords
            (coords_nom, coords_desc, coords_adresse, coords_url)
            VALUES (:nom, :desc, :adresse, :url)";
-        $stm = $pdo->prepare($sql);
+        
+        $stm = $this->dbApater->prepare($sql);
         $i = 0;
-        foreach($data as $line) {
+        
+        foreach($csvData as $line) {
             $entry = str_getcsv($line, ";");
             if(count($entry) != 4) {
                 continue;
@@ -87,20 +91,15 @@ class Coords
                 continue;
             }
         }
-        echo $i;
+        return $i;
     }
     /**
      * New coords
      */
-	function newCoords()
+	function save($data)
     {
-        $data['id'] = (int) $_POST['id'];
-        $data['nom'] = (string) $_POST['nom'];
-        $data['desc'] = (string) $_POST['description'];
-        $data['adresse'] = (string) $_POST['adresse'];
-        $data['url'] = (string) $_POST['url'];
-         
-        $pdo=$this->db;
+        
+        $pdo=$this->dbApater;
         
         if ($data['id'] === 0) {
             $sql = "INSERT INTO coords
@@ -130,14 +129,13 @@ class Coords
     }
     /**
      * 
+     * @return string json format
      */
-    function readCoords()
+    function fetchAll()
     {
-        $pdo=$this->db;
-        $sql = "SELECT *
-            FROM coords
-            WHERE 1";
-        $req = $pdo->query($sql);
+        $this->dbApater->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_NUM);
+        $sql = "SELECT * FROM coords  WHERE 1";
+        $req = $this->dbApater->query($sql);
         $result = $req->fetchAll();
     
         foreach($result as &$line) {
@@ -147,55 +145,38 @@ class Coords
             array_shift($line);
         }
     
-        $response = array('data' => $result);
-        echo json_encode($response);
+        $response = array('data' => $result);  
+        return json_encode($response);
     }
     /**
      * 
-     * @param unknown $id
+     * @param number $id of address to fetch
+     * @return string JSON Format
      */
-    function readById($id)
+    function findById($id)
     {
 
-        $pdo=$this->db;
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $this->dbApater->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $sql = "SELECT *
             FROM coords
             WHERE coords_id = :id";
-        $stm = $pdo->prepare($sql);
+        $stm = $this->dbApater->prepare($sql);
         $stm->bindParam(':id', $id);
         $req = $stm->execute();
         $result = $stm->fetch();
-        echo json_encode($result);
+        return  json_encode($result);
     }
     /**
      * 
      * @param index $id
      */
-    function deleteCoords($id)
+    function delete($id)
     {
-        $pdo=$this->db;
+     
         $sql = "DELETE FROM coords WHERE coords_id = ?";
-        $stm = $pdo->prepare($sql);
+        $stm = $this->dbApater->prepare($sql);
         echo $stm->execute(array($id));
     }
-    /**
-     * 
-     * @return PDO
-     */
-    function dbConnect()
-    {
-        $dsn = "mysql:dbname=project;host=localhost";
-        $username = "project";
-        $password = "0000";
-        $pdo = new PDO($dsn, $username, $password, array(
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES UTF8"
-        ));
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_NUM);
-        return $pdo;
-    }
-
     /**
      *
      * @return the $coords_id

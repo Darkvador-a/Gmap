@@ -71,9 +71,10 @@ class Db
     */
    private function connect()
    {
-       $dsn= $this->driver . ':dbname='. $this->dbname . ';host='. $this->$host;
+       $dsn= $this->driver . ':dbname='. $this->dbname . ';host='. $this->host;
        try {
            $this->connexion=new PDO($dsn, $this->username, $this->password);
+           
      
        }catch (Exception $e){
            throw $e;
