@@ -1,5 +1,5 @@
 <?php
-require_once 'app/Coords.php';
+require_once 'Coords.php';
 
 class CoordsMapper
 {

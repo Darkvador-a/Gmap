@@ -1,5 +1,10 @@
 <?php
-
+require_once 'Coords.php';
+/**
+ * 
+ * @author Administrateur
+ *
+ */
 class CoordsService
 {
 
